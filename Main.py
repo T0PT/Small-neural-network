@@ -7,7 +7,7 @@ second_dim=512
 third_dim=256
 fourth_dim=112
 exit_dim=10
-step=0.005
+step=0.02
 
 def new_values():
 
@@ -59,8 +59,8 @@ def sigmoid(s):
         
     return new        
 
-def forward(answer=0):
-    global x1, x2, x3, x4, x5, e
+def forward(answer=-1, x1=np.zeros(784)):
+    global x2, x3, x4, x5, e
     x2= x1.dot(w1)
     x2=sigmoid(x2)
     x3= x2.dot(w2)
@@ -70,12 +70,18 @@ def forward(answer=0):
     x5= x4.dot(w4)
     x5=sigmoid(x5)
     t=np.zeros(10)
-    t[answer]=1
-    e= t-x5 # np.square(t-x5)
-    print('error: '+str(np.sum(np.square(t-x5)))) 
-    #error=np.sum(t-x5)  
-    #print(x5)  
-    return e
+    if answer!=-1:
+        t[answer]=1
+        e= t-x5 # np.square(t-x5)
+        print('error: '+str(np.sum(np.square(t-x5)))) 
+        #error=np.sum(t-x5)  
+        #print(x5)  
+        return e
+    else:
+        m=0
+        for i in range(len(x5)):
+            if x5[i]==np.max(x5):m=i 
+        return m
 
 def backward():
     global e4, w1,w2,w3,w4,b1,b2,b3,b4,x2,x3,x4,x5
@@ -83,40 +89,41 @@ def backward():
     #print(w4)    
     for j in range(exit_dim):
         for k in range(fourth_dim):
-            w4[k][j]+=step*e4[k]*x4[k]*(1-x4[k])*x5[j]# delta_w[k][j]=step*e4[k]*x4[k]*(1-x4[k])*x5[j]    
+            w4[k][j]+=step*e4[k]*x4[k]*(1-x4[k])*x5[j].T# delta_w[k][j]=step*e4[k]*x4[k]*(1-x4[k])*x5[j]    
     e3=e4.dot(np.transpose(w3))
     for j in range(fourth_dim):
         for k in range(third_dim):
-            w3[k][j]+=step*e3[k]*x3[k]*(1-x3[k])*x4[j]# delta_w[k][j]=step*e4[k]*x4[k]*(1-x4[k])*x5[j]   
+            w3[k][j]+=step*e3[k]*x3[k]*(1-x3[k])*x4[j].T# delta_w[k][j]=step*e4[k]*x4[k]*(1-x4[k])*x5[j]   
     e2=e3.dot(np.transpose(w2)) 
     for j in range(third_dim):
         for k in range(second_dim):
-            w2[k][j]+=step*e2[k]*x2[k]*(1-x2[k])*x3[j]# delta_w[k][j]=step*e4[k]*x4[k]*(1-x4[k])*x5[j]    
+            w2[k][j]+=step*e2[k]*x2[k]*(1-x2[k])*x3[j].T# delta_w[k][j]=step*e4[k]*x4[k]*(1-x4[k])*x5[j]    
     #print(w4)
 
-# new_values()
-# save_values()
-start = time.process_time()   
-with open('10k_digits.json', 'r') as raw_data:
-    data=json.load(raw_data)
-    global x1
-    load_values()
-    #for m in range(1000):
-    g=np.random.randint(len(data))
-    h=np.random.randint(len(data[g]))
-    j=np.random.randint(len(data[g][h]))
-    ans=data[g][h][0]
-    x1=np.array(data[g][h][1:])
-    forward(answer = ans)
-    backward()
-    forward(answer = ans)        
-        
-    #print(ans)
-save_values()
+def learn():
+    start = time.process_time()
+    with open('10k_digits.json', 'r') as raw_data:
+        data=json.load(raw_data)
+        global x1
+        load_values()
+        for m in range(10000):
+            g=np.random.randint(len(data))
+            h=np.random.randint(len(data[g]))#len(data[g]))
+            ans=data[g][h][0]
+            x1=np.array(data[g][h][1:])
+            forward(answer = ans)
+            print(x5)
+            backward()
+            #forward(answer = ans)         
+        #print(ans)
+    save_values()
+    print(time.process_time() - start)
 
+new_values()
+save_values()  
+learn()
 # load_values()
 # start = time.process_time()
 # forward(answer = ans)
 # backward()
 # forward(answer = ans)
-print(time.process_time() - start)

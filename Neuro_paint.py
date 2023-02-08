@@ -1,7 +1,7 @@
 from tkinter import *
 from turtle import color
-from PIL import ImageTk, Image
-import csv
+import numpy as np
+import Main
 
 wind= Tk()
 wind.title('PAINt')
@@ -19,18 +19,23 @@ def update_cn(event=0, new=False):
     global field
     #global lastfield
     global field_to_feed
+    global answer
     if new==True:
         cn.delete("all")
         for i in range(27):
             cn.create_line(i*28+27,0,i*28+27,839)
             cn.create_line(0,i*28+27,839,i*28+27)
+            field_to_feed=[0]*784
     else:
         for y in range(0,28):
             for x in range(0,28):
                 if field[y][x]!=0:
                     col=field[y][x]
                     cn.create_rectangle(x*28,y*28,x*28+26,y*28+26, fill=f'#{255-col:02x}{255-col:02x}{255-col:02x}', outline=f'#{255-col:02x}{255-col:02x}{255-col:02x}') 
-                    field_to_feed[y*28+x]=col                           
+                    field_to_feed[y*28+x]=col 
+    Main.load_values()
+    answer=Main.forward(x1=np.array(field_to_feed))  
+    ans.config(text='Answer: '+str(answer))                        
                 #print('update')
     #lastfield=field.copy()
     
@@ -45,7 +50,8 @@ def draw(event):
     if event.x<784 and event.y<784:
         cn.create_rectangle(event.x//28*28,event.y//28*28,event.x//28*28+26,event.y//28*28+26, fill='black')
         #print('x'+str(event.x//28)+' y'+str(event.y//28))
-        field[event.y//28][event.x//28]=+180 # from left to right and up to down, y is vertical, x is horizontal        
+        field[event.y//28][event.x//28]+=200# from left to right and up to down, y is vertical, x is horizontal  
+        if field[event.y//28][event.x//28]>255: field[event.y//28][event.x//28]=255       
         try:
             field[event.y//28-1][event.x//28]+=20
             if field[event.y//28-1][event.x//28]>255: field[event.y//28-1][event.x//28]=255
@@ -66,7 +72,7 @@ def draw(event):
             if field[event.y//28][event.x//28-1]>255: field[event.y//28][event.x//28-1]=255          
         except:
             pass    
-        print('draw')
+        #print('draw')
     #for i in range(28):print(field[i])       
 
 def undraw(event):
