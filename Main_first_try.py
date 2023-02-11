@@ -13,21 +13,21 @@ def new_values():
 
     global w1,w2,w3,w4,b1,b2,b3,b4,x2,x3,x4,x5
 
-    w1=np.random.uniform(-0.005, 0.005,[first_dim, second_dim])
-    b1=np.random.uniform(0, 0.1,[second_dim])
+    w1=np.random.uniform(-0.005, 0.005,[first_dim+1, second_dim])
+    b1=np.random.uniform(-0.1, 0.1,[second_dim])
     x2=np.zeros(second_dim)
 
-    w2=np.random.uniform(-0.005, 0.005,[second_dim, third_dim])
-    b2=np.random.uniform(0, 0.1,[third_dim])
+    w2=np.random.uniform(-0.005, 0.005,[second_dim+1, third_dim])
+    b2=np.random.uniform(-0.1, 0.1,[third_dim])
     x3=np.zeros(third_dim)
 
-    w3=np.random.uniform(-0.005, 0.005,[third_dim, fourth_dim])
-    b3=np.random.uniform([fourth_dim])
+    w3=np.random.uniform(-0.005, 0.005,[third_dim+1, fourth_dim])
+    b3=np.random.uniform(-0.1, 0.1,[fourth_dim])
     x4=np.zeros(fourth_dim)
 
-    w4=np.random.uniform(-0.005, 0.005,[fourth_dim, exit_dim])
-    b4=np.random.uniform(0, 0.1,[exit_dim])
-    x5=np.zeros(exit_dim)    
+    w4=np.random.uniform(-0.005, 0.005,[fourth_dim+1, exit_dim])
+    b4=np.random.uniform(-0.1, 0.1,[exit_dim])
+    x5=np.zeros(exit_dim)        
 
 def save_values():
     with open('weights_and_biases', 'w+') as out:
@@ -60,14 +60,15 @@ def sigmoid(s):
     return new        
 
 def forward(answer=-1, x1=np.zeros(784)):
-    global x2, x3, x4, x5, e
-    x2= x1.dot(w1)
+    global x2, x3, x4, x5, b1, b1, b3, b4, e
+    x2= np.append(x1,[1]).dot(w1)
+    #print(len(x2))
     x2=sigmoid(x2)
-    x3= x2.dot(w2)
+    x3= np.append(x2,[1]).dot(w2)
     x3=sigmoid(x3)
-    x4= x3.dot(w3)
+    x4=np.append(x3,[1]).dot(w3)
     x4=sigmoid(x4)
-    x5= x4.dot(w4)
+    x5= np.append(x4,[1]).dot(w4)
     x5=sigmoid(x5)
     t=np.zeros(10)
     if answer!=-1:
@@ -85,16 +86,16 @@ def forward(answer=-1, x1=np.zeros(784)):
 
 def backward():
     global e4, w1,w2,w3,w4,b1,b2,b3,b4,x2,x3,x4,x5
-    e4=e.dot(np.transpose(w4))
+    e4=e.dot(np.transpose(w4[:-1]))
     #print(w4)    
     for j in range(exit_dim):
         for k in range(fourth_dim):
             w4[k][j]+=step*e4[k]*x4[k]*(1-x4[k])*x5[j].T# delta_w[k][j]=step*e4[k]*x4[k]*(1-x4[k])*x5[j]    
-    e3=e4.dot(np.transpose(w3))
+    e3=e4.dot(np.transpose(w3[:-1]))
     for j in range(fourth_dim):
         for k in range(third_dim):
             w3[k][j]+=step*e3[k]*x3[k]*(1-x3[k])*x4[j].T# delta_w[k][j]=step*e4[k]*x4[k]*(1-x4[k])*x5[j]   
-    e2=e3.dot(np.transpose(w2)) 
+    e2=e3.dot(np.transpose(w2[:-1])) 
     for j in range(third_dim):
         for k in range(second_dim):
             w2[k][j]+=step*e2[k]*x2[k]*(1-x2[k])*x3[j].T# delta_w[k][j]=step*e4[k]*x4[k]*(1-x4[k])*x5[j]    
@@ -106,11 +107,11 @@ def learn():
         data=json.load(raw_data)
         global x1
         load_values()
-        for m in range(10000):
-            g=np.random.randint(len(data))
-            h=np.random.randint(len(data[g]))#len(data[g]))
-            ans=data[g][h][0]
-            x1=np.array(data[g][h][1:])
+        for m in range(500):
+            #g=np.random.randint(len(data))
+            h=np.random.randint(len(data[0]))
+            ans=data[0][h][0]
+            x1=np.array(data[0][h][1:])
             forward(answer = ans)
             print(x5)
             backward()

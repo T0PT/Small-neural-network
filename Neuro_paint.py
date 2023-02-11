@@ -1,7 +1,7 @@
 from tkinter import *
 from turtle import color
 import numpy as np
-import Main
+import Main_second_try as Main
 
 wind= Tk()
 wind.title('PAINt')
@@ -34,7 +34,7 @@ def update_cn(event=0, new=False):
                     cn.create_rectangle(x*28,y*28,x*28+26,y*28+26, fill=f'#{255-col:02x}{255-col:02x}{255-col:02x}', outline=f'#{255-col:02x}{255-col:02x}{255-col:02x}') 
                     field_to_feed[y*28+x]=col 
     Main.load_values()
-    answer=Main.forward(x1=np.array(field_to_feed))  
+    answer=Main.forward(input=np.array(field_to_feed))  
     ans.config(text='Answer: '+str(answer))                        
                 #print('update')
     #lastfield=field.copy()

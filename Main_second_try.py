@@ -116,6 +116,6 @@ def learn():
     save_values()
     print(time.process_time() - start)
 
-new_values()
-save_values()  
-learn()
+# new_values()
+# save_values()  
+# learn()
