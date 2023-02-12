@@ -1,11 +1,12 @@
 import numpy as np
 import json
 import time
+import threading
 
 first_dim=784
-second_dim=128
+second_dim=16
 third_dim=10
-step=0.005
+step=0.01
 x1=np.zeros(third_dim)
 
 def new_values():
@@ -81,6 +82,11 @@ def forward(input=np.zeros(784), answer=-1):
         e= t-x3 # np.square(t-x5)
         cost= np.sum(np.square(t-x3))
         print('error: '+str(cost)) 
+    else:
+        m=0
+        for i in range(len(x3)):
+            if x3[i]==np.max(x3):m=i 
+        return m
 
         #error=np.sum(t-x5)  
         #print(x5)  
@@ -95,27 +101,52 @@ def backward():
     for j in range(second_dim):
         for k in range(first_dim):
             w1[k][j]+=step*x1[k]*sigmoid_der(x2[j])*e2[j]
-    
-    
 
-def learn():
+def cycle(input=np.zeros(784), answer=-1):
+    global w1, w2, b1, b2, x2, x3, e   
+    x2=input.dot(w1)+b1
+    x2=sigmoid(x2)
+    x3=x2.dot(w2)+b2
+    x3=sigmoid(x3)
+    t=np.zeros(third_dim)
+    if answer!=-1:
+        t[answer]=1
+        e= t-x3 # np.square(t-x5)
+        cost= np.sum(np.square(t-x3))
+        print('error: '+str(cost)) 
+    else:
+        m=0
+        for i in range(len(x3)):
+            if x3[i]==np.max(x3):m=i 
+        return m
+    e2=e.dot(w2.T)
+    for j in range(third_dim):
+        for k in range(second_dim):            
+            w2[k][j]+=step*x2[k]*sigmoid_der(x3[j])*e[j]
+    for j in range(second_dim):
+        for k in range(first_dim):
+            w1[k][j]+=step*x1[k]*sigmoid_der(x2[j])*e2[j]
+ 
+def learn(iterations=3):
     start = time.process_time()
+    procent=1/iterations
     with open('10k_digits.json', 'r') as raw_data:
         data=json.load(raw_data)
         global x1
         load_values()
-        for m in range(500):
+        for m in range(iterations):
             g=np.random.randint(len(data))
             h=np.random.randint(len(data[g]))
             ans=data[g][h][0]
             x1=np.array(data[g][h][1:])/255
-            forward(input=x1, answer=ans)
+            forward(input=x1, answer=ans)            
+            backward()     
             print(x3)
-            backward()
+            #print(m*procent)      
             #forward(input=x1, answer=ans)
     save_values()
     print(time.process_time() - start)
 
 # new_values()
 # save_values()  
-# learn()
+# learn(iterations=150000)
